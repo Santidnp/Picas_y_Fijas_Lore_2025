@@ -54,7 +54,7 @@ def valid_guess(s: str):
 # -------------------------
 # 🎵 Música: utilidades
 # -------------------------
-MUSIC_PATH = "WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3"
+MUSIC_PATH = "Dragon Ball GT OP - Dan Dan Kokoro Hikareteku - Hard Piano Tutorial  SheetsPiano Arrangement.mp3"
 
 @st.cache_data
 def load_mp3_b64(path: str) -> str:
