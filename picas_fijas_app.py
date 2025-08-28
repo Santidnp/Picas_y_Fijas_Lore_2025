@@ -77,10 +77,13 @@ st.markdown("""
 
 3. **Resultados**  
    - 🔴 **Fijas** → dígitos correctos en la **posición exacta**.  
+     > Ejemplo: si el secreto es 5271 y escribes 5279 → tienes 3 fijas.  
    - 🔵 **Picas** → dígitos correctos pero en la **posición equivocada**.  
+     > Ejemplo: si el secreto es 5271 y escribes 1523 → el 1, 2 y 5 están, pero en otra posición → 3 picas.  
 
 4. **Objetivo**  
    Sigue intentando hasta que logres **4 fijas** 🎉  
+   ¡Ese día habrás descubierto el número secreto!  
 
 5. **Historial**  
    Revisa tus jugadas para deducir el número secreto. se encuentra en la parte inferior.
