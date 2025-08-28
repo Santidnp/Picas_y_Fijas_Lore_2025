@@ -48,7 +48,7 @@ if "status" not in st.session_state:
 # UI
 # -------------------------
 st.title("🎯 Picas y Fijas")
-st.caption("Versión Lore 2025.")
+st.caption("Versión Lore 2025 🦗.")
 st.markdown("""
 ## 🎯 Cómo se juega *Picas y Fijas*
 
