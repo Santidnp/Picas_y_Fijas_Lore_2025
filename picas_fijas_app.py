@@ -54,7 +54,7 @@ def valid_guess(s: str):
 # -------------------------
 # 🎵 Música: función para inyectar el audio (loop)
 # -------------------------
-MUSIC_PATH = "assets/WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3"
+MUSIC_PATH = "WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3"
 
 def render_bgm(mp3_path=MUSIC_PATH):
     """
