@@ -156,12 +156,13 @@ st.markdown("""
 
 5. **Historial**  
    Revisa tus jugadas para deducir el número secreto. se encuentra en la parte inferior.
-6 **Opciones**  
+6.**Opciones**  
    En la barra lateral puedes:
    - Ver tus monedas acumuladas.
    - Revelar el número secreto (pista)
     - Controlar la música de fondo (reproducir, pausar, volumen)
-7 **Monedas**  
+            
+7.**Monedas**  
    Cada vez que adivines el número secreto, ganas **1 moneda de mil Lore** Que puedes reclamar despues a Santi 
 """)
 
