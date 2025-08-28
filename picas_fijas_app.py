@@ -58,6 +58,8 @@ if "history" not in st.session_state:
 if "status" not in st.session_state:
     st.session_state.status = "ready"  # "ready", "playing", "won"
 
+if "coins" not in st.session_state:
+    st.session_state.coins = 0  # acumulado de monedas 
 # -------------------------
 # UI
 # -------------------------
@@ -75,16 +77,13 @@ st.markdown("""
 
 3. **Resultados**  
    - 🔴 **Fijas** → dígitos correctos en la **posición exacta**.  
-     > Ejemplo: si el secreto es 5271 y escribes 5279 → tienes 3 fijas.  
    - 🔵 **Picas** → dígitos correctos pero en la **posición equivocada**.  
-     > Ejemplo: si el secreto es 5271 y escribes 1523 → el 1, 2 y 5 están, pero en otra posición → 3 picas.  
 
 4. **Objetivo**  
    Sigue intentando hasta que logres **4 fijas** 🎉  
-   ¡Ese día habrás descubierto el número secreto!  
 
 5. **Historial**  
-   Lleva un registro de tus jugadas anteriores para ayudarte a deducir el número secreto se encuentra en la tabla de abajo.
+   Revisa tus jugadas para deducir el número secreto.
 """)
 
 col_left, col_right = st.columns([3, 1])
@@ -93,11 +92,12 @@ with col_left:
 with col_right:
     play = st.button("¡A jugar!")
 
-# --- Métricas con placeholders (no se duplican) ---
-c1, c2, c3 = st.columns(3)
+# --- Métricas con placeholders (evita duplicados) ---
+c1, c2, c3, c4 = st.columns(4)
 picas_box  = c1.empty()
 fijas_box  = c2.empty()
 status_box = c3.empty()
+coins_box  = c4.empty()
 
 def render_header():
     """Dibuja una sola fila de cajas según el último estado."""
@@ -115,6 +115,9 @@ def render_header():
         fijas_box.info("**Fijas**\n\n0")
         status_box.success("**Listo para jugar**")
 
+    # NUEVO: monedas con simbolito
+    coins_box.info(f"**Monedas** 🪙\n\n{st.session_state.coins}")
+
 # Dibuja el encabezado al cargar
 render_header()
 
@@ -130,24 +133,30 @@ if play:
 
         st.session_state.history.append({"Jugada": guess, "Picas": p, "Fijas": f})
 
+        # ¿Acertó?
         if guess == "".join(str(d) for d in t_digits):
+            # Sumar moneda SOLO la primera vez que entra en estado 'won'
+            if st.session_state.status != "won":
+                st.session_state.coins += 1
             st.session_state.status = "won"
+            st.success("¡Ganaste 1 🪙 moneda de oro!")
             st.balloons()
         else:
             st.session_state.status = "playing"
 
-        # Re-dibuja con los nuevos valores (sigue siendo una sola fila)
+        # Re-dibuja con los nuevos valores
         render_header()
 
-# History table
+# Historial
 if st.session_state.history:
     st.subheader("Historial de jugadas")
     df = pd.DataFrame(st.session_state.history)
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-# Sidebar with controls
+# Sidebar
 with st.sidebar:
     st.header("Opciones")
+    st.write(f"**Monedas acumuladas:** 🪙 {st.session_state.coins}")
     if st.toggle("Mostrar pista (revelar número)"):
         st.code("Número secreto: " + "".join(map(str, st.session_state.target)))
 
@@ -156,5 +165,10 @@ with st.sidebar:
         st.session_state.history = []
         st.session_state.status = "ready"
         st.rerun()
+
+    # NUEVO: reiniciar monedas (sin tocar el juego)
+    if st.button("🧹 Reiniciar monedas"):
+        st.session_state.coins = 0
+        st.info("Monedas reiniciadas a 0.")
 
 st.caption("Reglas: **Fijas** = dígitos correctos en la posición correcta. **Picas** = dígitos correctos en posición incorrecta.")
