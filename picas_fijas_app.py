@@ -83,7 +83,9 @@ st.markdown("""
    Sigue intentando hasta que logres **4 fijas** 🎉  
 
 5. **Historial**  
-   Revisa tus jugadas para deducir el número secreto.
+   Revisa tus jugadas para deducir el número secreto. se encuentra en la parte inferior.
+6. **Monedas**  
+   Cada vez que adivines el número secreto, ganas **1 moneda de mil Lore**
 """)
 
 col_left, col_right = st.columns([3, 1])
