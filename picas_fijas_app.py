@@ -85,6 +85,9 @@ st.markdown("""
 4. **Objetivo**  
    Sigue intentando hasta que logres **4 fijas** 🎉  
    ¡Ese día habrás descubierto el número secreto!  
+
+5. **Historial**  
+   Lleva un registro de tus jugadas anteriores para ayudarte a deducir el número secreto se encuentra en la tabla de abajo.
 """)
 
 
