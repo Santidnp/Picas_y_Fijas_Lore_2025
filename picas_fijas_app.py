@@ -10,7 +10,7 @@ import pandas as pd
 # -------------------------
 st.set_page_config(page_title="Picas y Fijas", page_icon="🎯", layout="centered")
 
-# --- CSS responsive (igual que tenías) ---
+# --- CSS responsive ---
 st.markdown("""
 <style>
 @media (max-width: 640px) {
@@ -25,7 +25,7 @@ div.stAlert { border-radius: 12px; }
 """, unsafe_allow_html=True)
 
 # -------------------------
-# Helpers
+# Helpers del juego
 # -------------------------
 def secret_number():
     """Return a list of 4 unique digits, allowing leading zero (e.g., 0123)."""
@@ -52,38 +52,61 @@ def valid_guess(s: str):
     return len(s) == 4 and s.isdigit()
 
 # -------------------------
-# 🎵 Música: función para inyectar el audio (loop)
+# 🎵 Música: utilidades
 # -------------------------
-MUSIC_PATH = "WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3"
+MUSIC_PATH = "assets/WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3"
+
+@st.cache_data
+def load_mp3_b64(path: str) -> str:
+    return base64.b64encode(Path(path).read_bytes()).decode()
 
 def render_bgm(mp3_path=MUSIC_PATH):
     """
-    Inyecta un <audio> en loop. Requiere que st.session_state.bgm_enabled sea True.
-    Se controla el volumen con st.session_state.bgm_volume (0.0 a 1.0).
+    Crea (una sola vez) un <audio> persistente en window.parent (fuera del iframe),
+    y en cada rerun solo ajusta play/pause y volumen sin resetear el src.
+    Requiere st.session_state.bgm_enabled (bool) y st.session_state.bgm_volume (0.0–1.0).
     """
-    if not st.session_state.bgm_enabled:
-        return
     try:
-        audio_bytes = Path(mp3_path).read_bytes()
-        audio_b64 = base64.b64encode(audio_bytes).decode()
-        vol = st.session_state.bgm_volume
-
-        components.html(f"""
-        <audio id="bgm_streamlit" loop>
-          <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mpeg">
-        </audio>
-        <script>
-          const a = document.getElementById('bgm_streamlit');
-          if (a) {{
-            a.volume = {vol:.2f};
-            a.play().catch(() => {{
-              // Si falla por política de autoplay, el usuario puede pulsar de nuevo el botón.
-            }});
-          }}
-        </script>
-        """, height=0)
+        mp3_b64 = load_mp3_b64(mp3_path)
     except FileNotFoundError:
-        st.warning("⚠️ No encontré el archivo de música. Ponlo en:\n" + mp3_path)
+        st.warning(f"⚠️ No encontré el archivo de música: {mp3_path}")
+        return
+
+    enabled = "true" if st.session_state.get("bgm_enabled", False) else "false"
+    volume  = float(st.session_state.get("bgm_volume", 0.25))
+
+    components.html(f"""
+    <script>
+    (function() {{
+      const P = window.parent;
+      if (!P) return;
+
+      // Crea el audio global una sola vez
+      if (!P.bgmAudio) {{
+        const a = P.document.createElement('audio');
+        a.id = 'global_bgm_audio';
+        a.loop = true;
+        a.autoplay = false;  // lo controlamos con play() tras el botón
+        a.src = "data:audio/mp3;base64,{mp3_b64}";
+        a.style.display = "none";  // sin controles visibles
+        P.document.body.appendChild(a);
+        P.bgmAudio = a;
+      }}
+
+      // Ajusta volumen en cada render (no cambiamos la src)
+      try {{
+        P.bgmAudio.volume = {volume:.2f};
+      }} catch(e) {{}}
+
+      // Play / Pause según el estado
+      if ({enabled}) {{
+        P.bgmAudio.play().catch(()=>{{ /* si requiere gesto, el botón ya lo da */ }});
+      }} else {{
+        try {{ P.bgmAudio.pause(); }} catch(e) {{}}
+      }}
+    }})();
+    </script>
+    """, height=0)
 
 # -------------------------
 # Session state
@@ -213,11 +236,11 @@ with st.sidebar:
 
     # 🔊 Música de fondo
     st.subheader("🎵 Música de fondo")
-    col_m1, col_m2 = st.columns(2)
-    with col_m1:
+    c1, c2 = st.columns(2)
+    with c1:
         if st.button("▶️ Reproducir música"):
             st.session_state.bgm_enabled = True   # gesto del usuario → habilita play
-    with col_m2:
+    with c2:
         if st.button("⏸️ Pausar"):
             st.session_state.bgm_enabled = False  # pausa
 
@@ -234,7 +257,7 @@ with st.sidebar:
         st.session_state.coins = 0
         st.info("Monedas reiniciadas a 0.")
 
-# Activa/actualiza el audio si el usuario ya dio permiso
+# Activa/actualiza el audio si el usuario ya dio permiso (no se reinicia al interactuar)
 render_bgm(MUSIC_PATH)
 
 st.caption("Reglas: **Fijas** = dígitos correctos en la posición correcta. **Picas** = dígitos correctos en posición incorrecta.")
