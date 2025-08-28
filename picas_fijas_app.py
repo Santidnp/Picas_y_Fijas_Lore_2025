@@ -1,11 +1,13 @@
-import random 
-import streamlit as st
-import pandas as pd
+import random
 import base64
-import streamlit.components.v1 as components
 from pathlib import Path
+import streamlit as st
+import streamlit.components.v1 as components
+import pandas as pd
 
-# >>> Pon set_page_config al inicio
+# -------------------------
+# Config
+# -------------------------
 st.set_page_config(page_title="Picas y Fijas", page_icon="🎯", layout="centered")
 
 # --- CSS responsive (igual que tenías) ---
@@ -49,24 +51,40 @@ def valid_guess(s: str):
     """A valid guess is exactly 4 digits (0-9)."""
     return len(s) == 4 and s.isdigit()
 
-def play_music(mp3_path="assets/bg.mp3"):
+# -------------------------
+# 🎵 Música: función para inyectar el audio (loop)
+# -------------------------
+MUSIC_PATH = "assets/WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3"
+
+def render_bgm(mp3_path=MUSIC_PATH):
+    """
+    Inyecta un <audio> en loop. Requiere que st.session_state.bgm_enabled sea True.
+    Se controla el volumen con st.session_state.bgm_volume (0.0 a 1.0).
+    """
+    if not st.session_state.bgm_enabled:
+        return
     try:
-        # Lee y convierte a base64
         audio_bytes = Path(mp3_path).read_bytes()
         audio_b64 = base64.b64encode(audio_bytes).decode()
+        vol = st.session_state.bgm_volume
 
-        # Inyecta audio en loop
         components.html(f"""
-            <audio autoplay loop>
-              <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mpeg">
-            </audio>
+        <audio id="bgm_streamlit" loop>
+          <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mpeg">
+        </audio>
+        <script>
+          const a = document.getElementById('bgm_streamlit');
+          if (a) {{
+            a.volume = {vol:.2f};
+            a.play().catch(() => {{
+              // Si falla por política de autoplay, el usuario puede pulsar de nuevo el botón.
+            }});
+          }}
+        </script>
         """, height=0)
     except FileNotFoundError:
-        st.warning("⚠️ No encontré el archivo de música. Colócalo en assets/bg.mp3")
+        st.warning("⚠️ No encontré el archivo de música. Ponlo en:\n" + mp3_path)
 
-
-
-play_music("WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3")
 # -------------------------
 # Session state
 # -------------------------
@@ -80,7 +98,14 @@ if "status" not in st.session_state:
     st.session_state.status = "ready"  # "ready", "playing", "won"
 
 if "coins" not in st.session_state:
-    st.session_state.coins = 0  # acumulado de monedas 
+    st.session_state.coins = 0  # acumulado de monedas
+
+# 🎵 estado de música
+if "bgm_enabled" not in st.session_state:
+    st.session_state.bgm_enabled = False   # usuario activó música?
+if "bgm_volume" not in st.session_state:
+    st.session_state.bgm_volume = 0.25     # 0.0 a 1.0
+
 # -------------------------
 # UI
 # -------------------------
@@ -141,7 +166,7 @@ def render_header():
         fijas_box.info("**Fijas**\n\n0")
         status_box.success("**Listo para jugar**")
 
-    # NUEVO: monedas con simbolito
+    # Monedas con simbolito
     coins_box.info(f"**Monedas** 🪙\n\n{st.session_state.coins}")
 
 # Dibuja el encabezado al cargar
@@ -186,15 +211,30 @@ with st.sidebar:
     if st.toggle("Mostrar pista (revelar número)"):
         st.code("Número secreto: " + "".join(map(str, st.session_state.target)))
 
+    # 🔊 Música de fondo
+    st.subheader("🎵 Música de fondo")
+    col_m1, col_m2 = st.columns(2)
+    with col_m1:
+        if st.button("▶️ Reproducir música"):
+            st.session_state.bgm_enabled = True   # gesto del usuario → habilita play
+    with col_m2:
+        if st.button("⏸️ Pausar"):
+            st.session_state.bgm_enabled = False  # pausa
+
+    vol_pct = st.slider("Volumen", 0, 100, int(st.session_state.bgm_volume*100))
+    st.session_state.bgm_volume = vol_pct / 100.0
+
     if st.button("🔁 Reiniciar juego"):
         st.session_state.target = secret_number()
         st.session_state.history = []
         st.session_state.status = "ready"
         st.rerun()
 
-    # NUEVO: reiniciar monedas (sin tocar el juego)
     if st.button("🧹 Reiniciar monedas"):
         st.session_state.coins = 0
         st.info("Monedas reiniciadas a 0.")
+
+# Activa/actualiza el audio si el usuario ya dio permiso
+render_bgm(MUSIC_PATH)
 
 st.caption("Reglas: **Fijas** = dígitos correctos en la posición correcta. **Picas** = dígitos correctos en posición incorrecta.")
