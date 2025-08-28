@@ -1,6 +1,9 @@
 import random 
 import streamlit as st
 import pandas as pd
+import base64
+import streamlit.components.v1 as components
+from pathlib import Path
 
 # >>> Pon set_page_config al inicio
 st.set_page_config(page_title="Picas y Fijas", page_icon="🎯", layout="centered")
@@ -46,6 +49,24 @@ def valid_guess(s: str):
     """A valid guess is exactly 4 digits (0-9)."""
     return len(s) == 4 and s.isdigit()
 
+def play_music(mp3_path="assets/bg.mp3"):
+    try:
+        # Lee y convierte a base64
+        audio_bytes = Path(mp3_path).read_bytes()
+        audio_b64 = base64.b64encode(audio_bytes).decode()
+
+        # Inyecta audio en loop
+        components.html(f"""
+            <audio autoplay loop>
+              <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mpeg">
+            </audio>
+        """, height=0)
+    except FileNotFoundError:
+        st.warning("⚠️ No encontré el archivo de música. Colócalo en assets/bg.mp3")
+
+
+
+play_music("WE ARE THE CRYSTAL GEMS (Steven Universe Intro) - Piano Tutorial.mp3")
 # -------------------------
 # Session state
 # -------------------------
