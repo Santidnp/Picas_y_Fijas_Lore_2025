@@ -3,6 +3,23 @@ import random
 import streamlit as st
 import pandas as pd
 
+st.markdown("""
+<style>
+/* Reduce márgenes y mejora legibilidad en móviles */
+@media (max-width: 640px) {
+  .block-container { padding: 0.75rem 0.8rem; }
+  label, .stTextInput label { font-size: 1rem !important; }
+  input[type="text"], input[type="number"] { font-size: 1.05rem !important; }
+  .stButton>button { width: 100% !important; padding: 0.8rem 1rem; font-size: 1rem; }
+  .stDataFrame { height: 340px !important; }  /* evita scroll excesivo */
+}
+
+/* Opcional: “cards” más compactas */
+div.stAlert { border-radius: 12px; }
+</style>
+""", unsafe_allow_html=True)
+
+
 st.set_page_config(page_title="Picas y Fijas", page_icon="🎯", layout="centered")
 
 # -------------------------
@@ -48,7 +65,7 @@ if "status" not in st.session_state:
 # UI
 # -------------------------
 st.title("🎯 Picas y Fijas")
-st.caption("##Versión Lore 2025 🦗.")
+st.caption("## Versión Lore 2025 🦗.")
 st.markdown("""
 ## 🎯 Cómo se juega *Picas y Fijas*
 
